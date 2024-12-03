@@ -42,35 +42,20 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Pre-save middleware to hash password before saving
-userSchema.pre('save', async function (next) {
-  if (this.isModified('password')) {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-  }
-  next();
-});
-
-// Method to generate a JWT for authentication
 userSchema.methods.generateAuthToken = function () {
-  const token = jwt.sign({ _id: this._id, email: this.email }, process.env.JWT_SECRET, {
-    expiresIn: '24h',
-  });
+  const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
   return token;
-};
+}
 
-// Method to compare a given password with the hashed password
 userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
-};
+}
 
-// Static method to hash a password
 userSchema.statics.hashPassword = async function (password) {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
-};
+  return await bcrypt.hash(password, 10);
+}
 
-// Create the user model
-const User = mongoose.model('User', userSchema);
+const userModel = mongoose.model('user', userSchema);
 
-module.exports = User;
+
+module.exports = userModel;
